@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>Concert Trip Planner</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- เปลี่ยนฟอนต์เป็น Sarabun (แบบมีหัว) -->
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Sarabun', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #fce4ec;
+      color: #333;
+    }
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 768px) {
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    .header {
+      grid-column: 1 / -1;
+      text-align: center;
+      background: #e1f5fe;
+      padding: 20px;
+      border-radius: 15px;
+      border: 3px solid #ffb6c1;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+    h1, h2, h3 {
+      color: #5c85d6;
+      margin-top: 0;
+    }
+    .card {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 15px;
+      border: 2px solid #b3e5fc;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .form-group {
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #ff8ca3;
+    }
+    input, select {
+      padding: 10px;
+      font-size: 15px;
+      border: 2px solid #e1f5fe;
+      border-radius: 10px;
+      font-family: 'Sarabun', sans-serif;
+      outline: none;
+    }
+    input:focus, select:focus {
+      border-color: #ffb6c1;
+    }
+    button {
+      background-color: #ffb6c1;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      font-size: 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: 'Sarabun', sans-serif;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #ff99aa;
+    }
+    .quick-venue-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+    .quick-venue-buttons button {
+      background-color: #e1f5fe;
+      color: #5c85d6;
+      border: 1px solid #b3e5fc;
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 12px;
+    }
+    .quick-venue-buttons button:hover {
+      background-color: #b3e5fc;
+      color: #333;
+    }
+    .radio-group {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .radio-group label {
+      color: #333;
+      font-weight: 400;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .transit-result-box {
+      background: #e1f5fe;
+      border: 2px dashed #b3e5fc;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 15px;
+      text-align: center;
+    }
+    .transit-result-box p {
+      margin: 5px 0;
+      font-size: 15px;
+    }
+    .transit-result-price {
+      font-size: 22px;
+      font-weight: 600;
+      color: #d84b6b;
+    }
+    .btn-apply-fare {
+      background-color: #81c784;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+    .btn-apply-fare:hover {
+      background-color: #66bb6a;
+    }
+    .schedule-list {
+      list-style-type: none;
+      padding: 0;
+      margin: 10px 0 0 0;
+    }
+    .schedule-list li {
+      background: #e1f5fe;
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border-left: 5px solid #ffb6c1;
+      display: flex;
+      justify-content: space-between;
+      font-size: 15px;
+    }
+    .budget-result {
+      background: #ffecf0;
+      padding: 12px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #d84b6b;
+      margin-top: 15px;
+      margin-bottom: 15px;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .row > div {
+      flex: 1;
+      min-width: 130px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #fff;
+    }
+    th, td {
+      border: 1px solid #e1f5fe;
+      padding: 8px 10px;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background-color: #e1f5fe;
+      color: #5c85d6;
+    }
+    .table-scroll-container {
+      max-height: 180px;
+      overflow-y: auto;
+      border: 1px solid #e1f5fe;
+      border-radius: 8px;
+      margin-top: 10px;
+      margin-bottom: 15px;
+    }
+    .btn-delete {
+      background-color: #ff8a80;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      font-size: 13px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn-delete:hover {
+      background-color: #e57373;
+    }
+    .chart-container {
+      position: relative;
+      height: 220px;
+      width: 100%;
+      margin-top: 15px;
+    }
+    .highest-cost {
+      text-align: center;
+      margin-top: 12px;
+      font-weight: bold;
+      color: #d84b6b;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Concert Trip Planner</h1>
+    <p>วางแผนตารางเวลา คำนวณค่าโดยสารรถไฟฟ้า และบันทึกค่าใช้จ่ายรายรายการ</p>
+  </div>
+
+  <div class="main-container">
+    
+    <!-- ฝั่งซ้าย: คำนวณค่าโดยสาร BTS / MRT -->
+    <div class="card">
+      <h2>คำนวณค่าโดยสาร BTS / MRT</h2>
+      
+      <label>ทางลัดสถานที่จัดคอนเสิร์ตยอดฮิต</label>
+      <div class="quick-venue-buttons">
+        <button type="button" onclick="setConcertDestination('mrt_pink', 'อิมแพ็ค เมืองทองธานี')">อิมแพ็ค เมืองทองธานี</button>
+        <button type="button" onclick="setConcertDestination('bts_green', 'บางนา')">ไบเทค บางนา</button>
+        <button type="button" onclick="setConcertDestination('bts_green', 'พร้อมพงษ์')">UOB Live (Emsphere)</button>
+        <button type="button" onclick="setConcertDestination('mrt_blue', 'ศูนย์การประชุมแห่งชาติสิริกิติ์')">ศูนย์ฯ สิริกิติ์</button>
+      </div>
+
+      <div class="form-group">
+        <label>เลือกระบบรถไฟฟ้า</label>
+        <select id="trainLineSelect" onchange="populateStations()">
+          <option value="bts_green">BTS สายสุขุมวิท (สายสีเขียว)</option>
+          <option value="bts_silom">BTS สายสีลม</option>
+          <option value="mrt_blue">MRT สายสีน้ำเงิน</option>
+          <option value="mrt_pink">MRT สายสีชมพู (ไปเมืองทองธานี)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>สถานีต้นทาง</label>
+        <select id="originStationSelect"></select>
+      </div>
+
+      <div class="form-group">
+        <label>สถานีปลายทาง</label>
+        <select id="destinationStationSelect"></select>
+      </div>
+
+      <div class="form-group">
+        <label>ประเภทผู้โดยสาร</label>
+        <select id="passengerType">
+          <option value="adult">บุคคลทั่วไป</option>
+          <option value="student">นักเรียน / นักศึกษา</option>
+        </select>
+      </div>
+
+      <div class="radio-group">
+        <label><input type="radio" name="tripType" value="single" checked> เที่ยวเดียว</label>
+        <label><input type="radio" name="tripType" value="round"> ไป - กลับ</label>
+      </div>
+
+      <button type="button" onclick="calculateFare()" style="width: 100%;">คำนวณค่าโดยสาร</button>
+
+      <div class="transit-result-box" id="transitResultBox" style="display: none;">
+        <p id="stationCountText">จำนวนสถานี: 0 สถานี</p>
+        <p id="estimatedTimeText">ระยะเวลาโดยประมาณ: 0 นาที</p>
+        <p class="transit-result-price" id="fareResultText">0 บาท</p>
+        <button type="button" class="btn-apply-fare" onclick="applyFareToBudget()">เพิ่มรายการนี้ลงในงบเดินทาง</button>
+      </div>
+    </div>
+
+    <!-- ฝั่งขวา: ตารางเวลา และ บันทึกค่าใช้จ่าย -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+      
+      <!-- ตารางเวลา -->
+      <div class="card">
+        <h2>แพลนสถานที่และเวลา</h2>
+        <div class="row">
+          <div class="form-group">
+            <label>เวลา</label>
+            <input type="time" id="scheduleTime">
+          </div>
+          <div class="form-group" style="flex: 2;">
+            <label>สถานที่ / กิจกรรม</label>
+            <input type="text" id="scheduleActivity" placeholder="เช่น แวะกินข้าว, ไปต่อคิวซื้อของ">
+          </div>
+        </div>
+        <button type="button" onclick="addSchedule()">เพิ่มลงตาราง</button>
+        <ul class="schedule-list" id="scheduleList"></ul>
+      </div>
+
+      <!-- ส่วนบันทึกค่าใช้จ่ายแบบทีละขั้น -->
+      <div class="card">
+        <h2>บันทึกค่าใช้จ่าย</h2>
+        
+        <div class="row">
+          <div class="form-group" style="flex: 2;">
+            <label>ชื่อรายการ</label>
+            <input type="text" id="expenseName" placeholder="เช่น ข้าวมื้อเที่ยง, ชานม, แท่งไฟ">
+          </div>
+          <div class="form-group">
+            <label>หมวดหมู่</label>
+            <select id="expenseCategory">
+              <option value="food">อาหารและเครื่องดื่ม</option>
+              <option value="ticket">บัตรคอนเสิร์ต</option>
+              <option value="travel">ค่าเดินทาง</option>
+              <option value="merch">ของที่ระลึก</option>
+              <option value="other">อื่นๆ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>จำนวนเงิน (บาท)</label>
+            <input type="number" id="expenseAmount" placeholder="เช่น 50" min="0">
+          </div>
+        </div>
+
+        <button type="button" onclick="addExpenseItem()" style="width: 100%; margin-bottom: 15px;">เพิ่มรายการค่าใช้จ่าย</button>
+
+        <!-- ตารางประวัติรายการที่เพิ่มทีละขั้น -->
+        <label>รายการที่บันทึกไว้</label>
+        <div class="table-scroll-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 35px;">ลำดับ</th>
+                <th>รายการ</th>
+                <th>หมวดหมู่</th>
+                <th style="text-align: right;">จำนวนเงิน</th>
+                <th style="width: 55px; text-align: center;">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="expenseTableBody">
+              <tr>
+                <td colspan="5" style="text-align: center; color: #999;">ยังไม่มีรายการค่าใช้จ่าย</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ยอดรวมทั้งหมด -->
+        <div class="budget-result" id="totalBudget">
+          ยอดรวมทั้งหมด: 0 บาท
+        </div>
+
+        <!-- ตารางสรุปรวมตามหมวดหมู่ -->
+        <label>สรุปยอดรวมแยกตามหมวดหมู่</label>
+        <table style="margin-top: 5px;">
+          <thead>
+            <tr>
+              <th>หมวดหมู่</th>
+              <th style="text-align: right;">รวมเป็นเงิน (บาท)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>อาหารและเครื่องดื่ม</td><td id="sumFood" style="text-align: right;">0</td></tr>
+            <tr><td>บัตรคอนเสิร์ต</td><td id="sumTicket" style="text-align: right;">0</td></tr>
+            <tr><td>ค่าเดินทาง</td><td id="sumTravel" style="text-align: right;">0</td></tr>
+            <tr><td>ของที่ระลึก</td><td id="sumMerch" style="text-align: right;">0</td></tr>
+            <tr><td>อื่นๆ</td><td id="sumOther" style="text-align: right;">0</td></tr>
+          </tbody>
+        </table>
+
+        <!-- กราฟวงกลม -->
+        <div class="chart-container">
+          <canvas id="budgetChart"></canvas>
+        </div>
+        <div id="highestCostText" class="highest-cost"></div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ฐานข้อมูลสถานีรถไฟฟ้า
+    const trainData = {
+      bts_green: [
+        "คูคต", "แยก คปอ.", "พิพิธภัณฑ์กองทัพอากาศ", "โรงพยาบาลภูมิพลอดุลยเดช", "สะพานใหม่", 
+        "สายหยุด", "พหลโยธิน 59", "วัดพระศรีมหาธาตุ", "กรมทหารราบที่ 11", "บางบัว", 
+        "กรมป่าไม้", "มหาวิทยาลัยเกษตรศาสตร์", "เสนานิคม", "รัชโยธิน", "พหลโยธิน 24", 
+        "ห้าแยกลาดพร้าว", "หมอชิต", "สะพานควาย", "อารีย์", "สนามเป้า", 
+        "อนุสาวรีย์ชัยสมรภูมิ", "พญาไท", "ราชเทวี", "สยาม", "ชิดลม", 
+        "เพลินจิต", "นานา", "อโศก", "พร้อมพงษ์", "ทองหล่อ", 
+        "เอกมัย", "พระโขนง", "อ่อนนุช", "บางจาก", "ปุณณวิถี", 
+        "อุดมสุข", "บางนา", "แบริ่ง", "สำโรง", "ปากน้ำ", "เคหะฯ"
+      ],
+      bts_silom: [
+        "สนามกีฬาแห่งชาติ", "สยาม", "ราชดำริ", "ศาลาแดง", "ช่องนนทรี", 
+        "เซนต์หลุยส์", "สุรศักดิ์", "สะพานตากสิน", "กรุงธนบุรี", "วงเวียนใหญ่", 
+        "โพธิ์นิมิตร", "ตลาดพลู", "วุฒากาศ", "บางหว้า"
+      ],
+      mrt_blue: [
+        "หลักสอง", "บางแค", "ภาษีเจริญ", "เพชรเกษม 48", "บางหว้า", 
+        "บางไผ่", "ท่าพระ", "อิสรภาพ", "สนามไชย", "สามยอด", 
+        "วัดมังกร", "หัวลำโพง", "สามย่าน", "สีลม", "ลุมพินี", 
+        "คลองเตย", "ศูนย์การประชุมแห่งชาติสิริกิติ์", "สุขุมวิท", "เพชรบุรี", "พระราม 9", 
+        "ศูนย์วัฒนธรรมแห่งประเทศไทย", "ห้วยขวาง", "สุทธิสาร", "รัชดาภิเษก", "ลาดพร้าว", 
+        "พหลโยธิน", "สวนจตุจักร", "กำแพงเพชร", "บางซื่อ", "เตาปูน", 
+        "บางโพ", "บางอ้อ", "บางพลัด", "สิรินธร", "บางยี่ขัน", "บางขุนนนท์", "ไฟฉาย", "จรัญฯ 13"
+      ],
+      mrt_pink: [
+        "ศูนย์ราชการนนทบุรี", "แคราย", "สนามบินน้ำ", "สามัคคี", "กรมชลประทาน", 
+        "แยกปากเกร็ด", "เลี่ยงเมืองปากเกร็ด", "แจ้งวัฒนะ-ปากเกร็ด 28", "เมืองทองธานี", 
+        "อิมแพ็ค เมืองทองธานี", "ศรีรัช", "แจ้งวัฒนะ 14", "ศูนย์ราชการเฉลิมพระเกียรติ", 
+        "โทรคมนาคมแห่งชาติ", "หลักสี่", "ราชภัฏพระนคร", "วัดพระศรีมหาธาตุ", "รามอินทรา 3", 
+        "ลาดปลาเค้า", "รามอินทรา กม.4", "มัยลาภ", "วัชรพล", "รามอินทรา กม.6", 
+        "คู้บอน", "รามอินทรา กม.9", "วงแหวนรามอินทรา", "นพรัตน์", "บางชัน", 
+        "เศรษฐบุตรบำเพ็ญ", "ตลาดมีนบุรี", "มีนบุรี"
+      ]
+    };
+
+    let latestCalculatedFare = 0;
+    let budgetChartInstance = null;
+
+    // รายการบันทึกค่าใช้จ่ายแต่ละตัว
+    let expenseList = [];
+
+    const categoryNames = {
+      food: "อาหารและเครื่องดื่ม",
+      ticket: "บัตรคอนเสิร์ต",
+      travel: "ค่าเดินทาง",
+      merch: "ของที่ระลึก",
+      other: "อื่นๆ"
+    };
+
+    // ฟังก์ชันสร้างตัวเลือกสถานี
+    function populateStations() {
+      const lineKey = document.getElementById("trainLineSelect").value;
+      const stations = trainData[lineKey] || [];
+      const originSelect = document.getElementById("originStationSelect");
+      const destSelect = document.getElementById("destinationStationSelect");
+
+      originSelect.innerHTML = "";
+      destSelect.innerHTML = "";
+
+      stations.forEach((stn, index) => {
+        const opt1 = document.createElement("option");
+        opt1.value = index;
+        opt1.textContent = stn;
+        originSelect.appendChild(opt1);
+
+        const opt2 = document.createElement("option");
+        opt2.value = index;
+        opt2.textContent = stn;
+        destSelect.appendChild(opt2);
+      });
+
+      if (stations.length > 1) {
+        destSelect.selectedIndex = stations.length - 1;
+      }
+    }
+
+    // ปุ่มลัดเลือกสถานที่จัดคอนเสิร์ต
+    function setConcertDestination(lineKey, stationName) {
+      const lineSelect = document.getElementById("trainLineSelect");
+      lineSelect.value = lineKey;
+      populateStations();
+
+      const destSelect = document.getElementById("destinationStationSelect");
+      const stations = trainData[lineKey];
+      const foundIndex = stations.indexOf(stationName);
+
+      if (foundIndex !== -1) {
+        destSelect.value = foundIndex;
+      }
+    }
+
+    // คำนวณค่าโดยสารรถไฟฟ้า
+    function calculateFare() {
+      const lineKey = document.getElementById("trainLineSelect").value;
+      const originIndex = parseInt(document.getElementById("originStationSelect").value);
+      const destIndex = parseInt(document.getElementById("destinationStationSelect").value);
+      const passengerType = document.getElementById("passengerType").value;
+      const tripType = document.querySelector('input[name="tripType"]:checked').value;
+
+      const stationDiff = Math.abs(destIndex - originIndex);
+      let singleFare = 0;
+
+      if (stationDiff === 0) {
+        singleFare = 0;
+      } else if (lineKey === "bts_green" || lineKey === "bts_silom") {
+        const btsRate = [17, 25, 28, 32, 35, 40, 43, 47];
+        if (stationDiff >= btsRate.length) {
+          singleFare = 47;
+        } else {
+          singleFare = btsRate[stationDiff - 1];
+        }
+        if (passengerType === "student") {
+          singleFare = Math.round(singleFare * 0.85);
+        }
+      } else if (lineKey === "mrt_blue") {
+        singleFare = Math.min(45, 17 + (stationDiff - 1) * 2);
+        if (passengerType === "student") {
+          singleFare = Math.round(singleFare * 0.9);
+        }
+      } else if (lineKey === "mrt_pink") {
+        singleFare = Math.min(45, 15 + (stationDiff - 1) * 2);
+        if (passengerType === "student") {
+          singleFare = Math.round(singleFare * 0.9);
+        }
+      }
+
+      let totalFare = (tripType === "round") ? singleFare * 2 : singleFare;
+      latestCalculatedFare = totalFare;
+
+      const estimatedMinutes = stationDiff * 2.5;
+
+      document.getElementById("stationCountText").textContent = "ระยะทาง: " + stationDiff + " สถานี";
+      document.getElementById("estimatedTimeText").textContent = "ระยะเวลาโดยประมาณ: " + Math.round(estimatedMinutes) + " นาที (ต่อเที่ยว)";
+      document.getElementById("fareResultText").textContent = "ค่าโดยสารรวม: " + totalFare + " บาท" + (tripType === "round" ? " (ไป-กลับ)" : " (เที่ยวเดียว)");
+      document.getElementById("transitResultBox").style.display = "block";
+    }
+
+    // นำค่าโดยสารรถไฟฟ้าไปเพิ่มลงในรายการค่าใช้จ่าย
+    function applyFareToBudget() {
+      if (latestCalculatedFare <= 0) {
+        alert("กรุณาคำนวณค่าโดยสารก่อน");
+        return;
+      }
+      const originSelect = document.getElementById("originStationSelect");
+      const destSelect = document.getElementById("destinationStationSelect");
+      const originName = originSelect.options[originSelect.selectedIndex].text;
+      const destName = destSelect.options[destSelect.selectedIndex].text;
+      const tripType = document.querySelector('input[name="tripType"]:checked').value;
+      const tripText = (tripType === "round") ? "ไป-กลับ" : "เที่ยวเดียว";
+
+      const itemName = "รถไฟฟ้า " + originName + " ถึง " + destName + " (" + tripText + ")";
+
+      expenseList.push({
+        id: Date.now(),
+        name: itemName,
+        category: "travel",
+        amount: latestCalculatedFare
+      });
+
+      renderExpenses();
+      alert("เพิ่มรายการ '" + itemName + "' จำนวน " + latestCalculatedFare + " บาท เรียบร้อยแล้ว");
+    }
+
+    // เพิ่มรายการค่าใช้จ่ายทีละขั้น
+    function addExpenseItem() {
+      const nameInput = document.getElementById("expenseName");
+      const categorySelect = document.getElementById("expenseCategory");
+      const amountInput = document.getElementById("expenseAmount");
+
+      const name = nameInput.value.trim();
+      const category = categorySelect.value;
+      const amount = parseFloat(amountInput.value);
+
+      if (!name) {
+        alert("กรุณาระบุชื่อรายการ");
+        return;
+      }
+      if (isNaN(amount) || amount <= 0) {
+        alert("กรุณาระบุจำนวนเงินที่มากกว่า 0");
+        return;
+      }
+
+      expenseList.push({
+        id: Date.now(),
+        name: name,
+        category: category,
+        amount: amount
+      });
+
+      // เคลียร์ช่องพิมพ์
+      nameInput.value = "";
+      amountInput.value = "";
+
+      renderExpenses();
+    }
+
+    // ลบรายการค่าใช้จ่าย
+    function deleteExpenseItem(id) {
+      expenseList = expenseList.filter(item => item.id !== id);
+      renderExpenses();
+    }
+
+    // ประมวลผลและแสดงผลค่าใช้จ่ายทั้งหมด
+    function renderExpenses() {
+      const tbody = document.getElementById("expenseTableBody");
+      tbody.innerHTML = "";
+
+      const totalsByCategory = {
+        food: 0,
+        ticket: 0,
+        travel: 0,
+        merch: 0,
+        other: 0
+      };
+
+      let grandTotal = 0;
+
+      if (expenseList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">ยังไม่มีรายการค่าใช้จ่าย</td></tr>';
+      } else {
+        expenseList.forEach((item, index) => {
+          totalsByCategory[item.category] += item.amount;
+          grandTotal += item.amount;
+
+          const tr = document.createElement("tr");
+
+          const tdIndex = document.createElement("td");
+          tdIndex.textContent = index + 1;
+
+          const tdName = document.createElement("td");
+          tdName.textContent = item.name;
+
+          const tdCategory = document.createElement("td");
+          tdCategory.textContent = categoryNames[item.category];
+
+          const tdAmount = document.createElement("td");
+          tdAmount.style.textAlign = "right";
+          tdAmount.textContent = item.amount.toLocaleString("th-TH");
+
+          const tdAction = document.createElement("td");
+          tdAction.style.textAlign = "center";
+          const deleteBtn = document.createElement("button");
+          deleteBtn.type = "button";
+          deleteBtn.className = "btn-delete";
+          deleteBtn.textContent = "ลบ";
+          deleteBtn.onclick = function() {
+            deleteExpenseItem(item.id);
+          };
+          tdAction.appendChild(deleteBtn);
+
+          tr.appendChild(tdIndex);
+          tr.appendChild(tdName);
+          tr.appendChild(tdCategory);
+          tr.appendChild(tdAmount);
+          tr.appendChild(tdAction);
+
+          tbody.appendChild(tr);
+        });
+      }
+
+      // แสดงยอดสะสมในตารางหมวดหมู่
+      document.getElementById("sumFood").textContent = totalsByCategory.food.toLocaleString("th-TH");
+      document.getElementById("sumTicket").textContent = totalsByCategory.ticket.toLocaleString("th-TH");
+      document.getElementById("sumTravel").textContent = totalsByCategory.travel.toLocaleString("th-TH");
+      document.getElementById("sumMerch").textContent = totalsByCategory.merch.toLocaleString("th-TH");
+      document.getElementById("sumOther").textContent = totalsByCategory.other.toLocaleString("th-TH");
+
+      // ยอดรวมทั้งหมด
+      document.getElementById("totalBudget").textContent = "ยอดรวมทั้งหมด: " + grandTotal.toLocaleString("th-TH") + " บาท";
+
+      // คำนวณหมวดหมู่ที่ใช้เงินมากที่สุด
+      const categoryRanking = [
+        { name: categoryNames.food, amount: totalsByCategory.food },
+        { name: categoryNames.ticket, amount: totalsByCategory.ticket },
+        { name: categoryNames.travel, amount: totalsByCategory.travel },
+        { name: categoryNames.merch, amount: totalsByCategory.merch },
+        { name: categoryNames.other, amount: totalsByCategory.other }
+      ].sort((a, b) => b.amount - a.amount);
+
+      const highestCostText = document.getElementById("highestCostText");
+      if (grandTotal > 0 && categoryRanking[0].amount > 0) {
+        const percent = ((categoryRanking[0].amount / grandTotal) * 100).toFixed(1);
+        highestCostText.textContent = "คุณใช้จ่ายไปกับ " + categoryRanking[0].name + " มากที่สุด คิดเป็น " + percent + "% ของงบทั้งหมด";
+      } else {
+        highestCostText.textContent = "";
+      }
+
+      // อัปเดตกราฟวงกลม
+      if (budgetChartInstance) {
+        budgetChartInstance.data.datasets[0].data = [
+          totalsByCategory.food,
+          totalsByCategory.ticket,
+          totalsByCategory.travel,
+          totalsByCategory.merch,
+          totalsByCategory.other
+        ];
+        budgetChartInstance.update();
+      }
+    }
+
+    // เพิ่มตารางเวลา
+    function addSchedule() {
+      const time = document.getElementById("scheduleTime").value;
+      const activity = document.getElementById("scheduleActivity").value;
+
+      if (!time || !activity) {
+        alert("กรุณาระบุเวลาและกิจกรรม");
+        return;
+      }
+
+      const list = document.getElementById("scheduleList");
+      const li = document.createElement("li");
+      
+      const timeSpan = document.createElement("span");
+      timeSpan.style.fontWeight = "bold";
+      timeSpan.style.color = "#5c85d6";
+      timeSpan.textContent = time + " น.";
+
+      const activitySpan = document.createElement("span");
+      activitySpan.textContent = activity;
+
+      li.appendChild(timeSpan);
+      li.appendChild(activitySpan);
+      list.appendChild(li);
+
+      document.getElementById("scheduleTime").value = "";
+      document.getElementById("scheduleActivity").value = "";
+    }
+
+    // สร้างกราฟวงกลมเริ่มต้น
+    function initChart() {
+      const ctx = document.getElementById("budgetChart").getContext("2d");
+      budgetChartInstance = new Chart(ctx, {
+        type: "pie",
+        data: {
+          labels: ["อาหารและเครื่องดื่ม", "บัตรคอนเสิร์ต", "ค่าเดินทาง", "ของที่ระลึก", "อื่นๆ"],
+          datasets: [{
+            data: [0, 0, 0, 0, 0],
+            backgroundColor: [
+              "#ffe082",
+              "#ffb6c1",
+              "#b3e5fc",
+              "#c8e6c9",
+              "#d1c4e9"
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "right"
+            }
+          }
+        }
+      });
+    }
+
+    window.onload = function() {
+      populateStations();
+      initChart();
+    };
+  </script>
+
+</body>
+</html>
