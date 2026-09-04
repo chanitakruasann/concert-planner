@@ -5,7 +5,6 @@
   <title>Concert Trip Planner</title>
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- เปลี่ยนฟอนต์เป็น Sarabun (แบบมีหัว) -->
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
   
   <style>
@@ -150,12 +149,19 @@
     .schedule-list li {
       background: #e1f5fe;
       margin-bottom: 8px;
-      padding: 8px 12px;
+      padding: 12px;
       border-radius: 10px;
       border-left: 5px solid #ffb6c1;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       font-size: 15px;
+    }
+    .schedule-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed #b3e5fc;
+      padding-bottom: 5px;
+      margin-bottom: 5px;
     }
     .budget-result {
       background: #ffecf0;
@@ -297,6 +303,23 @@
       <!-- ตารางเวลา -->
       <div class="card">
         <h2>แพลนสถานที่และเวลา</h2>
+        
+        <div class="row">
+          <div class="form-group" style="flex: 2;">
+            <label>วันที่</label>
+            <input type="date" id="scheduleDate">
+          </div>
+          <div class="form-group">
+            <label>วันที่ไป (Day)</label>
+            <select id="scheduleDay">
+              <option value="Day 1">Day 1</option>
+              <option value="Day 2">Day 2</option>
+              <option value="Day 3">Day 3</option>
+              <option value="Day 4">Day 4</option>
+            </select>
+          </div>
+        </div>
+
         <div class="row">
           <div class="form-group">
             <label>เวลา</label>
@@ -432,8 +455,6 @@
 
     let latestCalculatedFare = 0;
     let budgetChartInstance = null;
-
-    // รายการบันทึกค่าใช้จ่ายแต่ละตัว
     let expenseList = [];
 
     const categoryNames = {
@@ -444,7 +465,6 @@
       other: "อื่นๆ"
     };
 
-    // ฟังก์ชันสร้างตัวเลือกสถานี
     function populateStations() {
       const lineKey = document.getElementById("trainLineSelect").value;
       const stations = trainData[lineKey] || [];
@@ -471,7 +491,6 @@
       }
     }
 
-    // ปุ่มลัดเลือกสถานที่จัดคอนเสิร์ต
     function setConcertDestination(lineKey, stationName) {
       const lineSelect = document.getElementById("trainLineSelect");
       lineSelect.value = lineKey;
@@ -486,7 +505,6 @@
       }
     }
 
-    // คำนวณค่าโดยสารรถไฟฟ้า
     function calculateFare() {
       const lineKey = document.getElementById("trainLineSelect").value;
       const originIndex = parseInt(document.getElementById("originStationSelect").value);
@@ -532,7 +550,6 @@
       document.getElementById("transitResultBox").style.display = "block";
     }
 
-    // นำค่าโดยสารรถไฟฟ้าไปเพิ่มลงในรายการค่าใช้จ่าย
     function applyFareToBudget() {
       if (latestCalculatedFare <= 0) {
         alert("กรุณาคำนวณค่าโดยสารก่อน");
@@ -558,7 +575,6 @@
       alert("เพิ่มรายการ '" + itemName + "' จำนวน " + latestCalculatedFare + " บาท เรียบร้อยแล้ว");
     }
 
-    // เพิ่มรายการค่าใช้จ่ายทีละขั้น
     function addExpenseItem() {
       const nameInput = document.getElementById("expenseName");
       const categorySelect = document.getElementById("expenseCategory");
@@ -584,20 +600,17 @@
         amount: amount
       });
 
-      // เคลียร์ช่องพิมพ์
       nameInput.value = "";
       amountInput.value = "";
 
       renderExpenses();
     }
 
-    // ลบรายการค่าใช้จ่าย
     function deleteExpenseItem(id) {
       expenseList = expenseList.filter(item => item.id !== id);
       renderExpenses();
     }
 
-    // ประมวลผลและแสดงผลค่าใช้จ่ายทั้งหมด
     function renderExpenses() {
       const tbody = document.getElementById("expenseTableBody");
       tbody.innerHTML = "";
@@ -655,17 +668,14 @@
         });
       }
 
-      // แสดงยอดสะสมในตารางหมวดหมู่
       document.getElementById("sumFood").textContent = totalsByCategory.food.toLocaleString("th-TH");
       document.getElementById("sumTicket").textContent = totalsByCategory.ticket.toLocaleString("th-TH");
       document.getElementById("sumTravel").textContent = totalsByCategory.travel.toLocaleString("th-TH");
       document.getElementById("sumMerch").textContent = totalsByCategory.merch.toLocaleString("th-TH");
       document.getElementById("sumOther").textContent = totalsByCategory.other.toLocaleString("th-TH");
 
-      // ยอดรวมทั้งหมด
       document.getElementById("totalBudget").textContent = "ยอดรวมทั้งหมด: " + grandTotal.toLocaleString("th-TH") + " บาท";
 
-      // คำนวณหมวดหมู่ที่ใช้เงินมากที่สุด
       const categoryRanking = [
         { name: categoryNames.food, amount: totalsByCategory.food },
         { name: categoryNames.ticket, amount: totalsByCategory.ticket },
@@ -682,7 +692,6 @@
         highestCostText.textContent = "";
       }
 
-      // อัปเดตกราฟวงกลม
       if (budgetChartInstance) {
         budgetChartInstance.data.datasets[0].data = [
           totalsByCategory.food,
@@ -695,36 +704,55 @@
       }
     }
 
-    // เพิ่มตารางเวลา
+    // ฟังก์ชันเพิ่มตารางเวลา (อัปเดตให้มีวันที่และ Day)
     function addSchedule() {
+      const date = document.getElementById("scheduleDate").value;
+      const day = document.getElementById("scheduleDay").value;
       const time = document.getElementById("scheduleTime").value;
       const activity = document.getElementById("scheduleActivity").value;
 
-      if (!time || !activity) {
-        alert("กรุณาระบุเวลาและกิจกรรม");
+      if (!date || !time || !activity) {
+        alert("กรุณาระบุวันที่ เวลา และกิจกรรมให้ครบถ้วน");
         return;
       }
 
       const list = document.getElementById("scheduleList");
       const li = document.createElement("li");
+
+      // สร้างส่วนหัวของลิสต์ (วันที่ และ เวลา)
+      const headerDiv = document.createElement("div");
+      headerDiv.className = "schedule-header";
+
+      const dateSpan = document.createElement("span");
+      dateSpan.style.fontWeight = "bold";
+      dateSpan.style.color = "#d84b6b";
       
+      // จัดรูปแบบวันที่ให้ดูง่ายขึ้น
+      const dateObj = new Date(date);
+      const formattedDate = dateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+      dateSpan.textContent = day + " (" + formattedDate + ")";
+
       const timeSpan = document.createElement("span");
       timeSpan.style.fontWeight = "bold";
       timeSpan.style.color = "#5c85d6";
       timeSpan.textContent = time + " น.";
 
-      const activitySpan = document.createElement("span");
-      activitySpan.textContent = activity;
+      headerDiv.appendChild(dateSpan);
+      headerDiv.appendChild(timeSpan);
 
-      li.appendChild(timeSpan);
-      li.appendChild(activitySpan);
+      // สร้างส่วนล่างของลิสต์ (กิจกรรม)
+      const activityDiv = document.createElement("div");
+      activityDiv.textContent = activity;
+
+      li.appendChild(headerDiv);
+      li.appendChild(activityDiv);
       list.appendChild(li);
 
+      // เคลียร์เฉพาะช่องเวลาและกิจกรรม เพื่อให้กรอกเวลาถัดไปในวันเดียวกันได้ง่ายขึ้น
       document.getElementById("scheduleTime").value = "";
       document.getElementById("scheduleActivity").value = "";
     }
 
-    // สร้างกราฟวงกลมเริ่มต้น
     function initChart() {
       const ctx = document.getElementById("budgetChart").getContext("2d");
       budgetChartInstance = new Chart(ctx, {
