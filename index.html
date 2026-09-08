@@ -15,9 +15,23 @@
       background-color: #fce4ec;
       color: #333;
     }
-    .main-container {
+    /* หน้าล็อกอิน */
+    #loginScreen {
+      max-width: 400px;
+      margin: 100px auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 15px;
+      border: 2px solid #b3e5fc;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+    #appScreen {
+      display: none;
       max-width: 1200px;
       margin: 0 auto;
+    }
+    .main-container {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
@@ -36,6 +50,13 @@
       border: 3px solid #ffb6c1;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
       margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-content {
+      flex: 1;
+      text-align: center;
     }
     h1, h2, h3 {
       color: #5c85d6;
@@ -52,6 +73,7 @@
       margin-bottom: 12px;
       display: flex;
       flex-direction: column;
+      text-align: left;
     }
     label {
       font-weight: 600;
@@ -83,6 +105,14 @@
     }
     button:hover {
       background-color: #ff99aa;
+    }
+    .btn-logout {
+      background-color: #ff8a80;
+      padding: 6px 14px;
+      font-size: 14px;
+    }
+    .btn-logout:hover {
+      background-color: #e57373;
     }
     .quick-venue-buttons {
       display: flex;
@@ -235,188 +265,207 @@
 </head>
 <body>
 
-  <div class="header">
-    <h1>Concert Trip Planner</h1>
-    <p>วางแผนตารางเวลา คำนวณค่าโดยสารรถไฟฟ้า และบันทึกค่าใช้จ่ายรายรายการ</p>
+  <!-- หน้าล็อกอิน (ใส่ชื่อ) -->
+  <div id="loginScreen">
+    <h2>Concert Trip Planner</h2>
+    <p style="color: #666; margin-bottom: 20px;">กรอกชื่อของคุณเพื่อเริ่มวางแผนคอนเสิร์ต</p>
+    <div class="form-group">
+      <label>ชื่อของคุณ</label>
+      <input type="text" id="usernameInput" placeholder="เช่น มินนี่">
+    </div>
+    <button type="button" onclick="handleLogin()" style="width: 100%; margin-top: 10px;">เข้าสู่ระบบ</button>
   </div>
 
-  <div class="main-container">
-    
-    <!-- ฝั่งซ้าย: คำนวณค่าโดยสาร BTS / MRT -->
-    <div class="card">
-      <h2>คำนวณค่าโดยสาร BTS / MRT</h2>
-      
-      <label>ทางลัดสถานที่จัดคอนเสิร์ตยอดฮิต</label>
-      <div class="quick-venue-buttons">
-        <button type="button" onclick="setConcertDestination('mrt_pink', 'อิมแพ็ค เมืองทองธานี')">อิมแพ็ค เมืองทองธานี</button>
-        <button type="button" onclick="setConcertDestination('bts_green', 'บางนา')">ไบเทค บางนา</button>
-        <button type="button" onclick="setConcertDestination('bts_green', 'พร้อมพงษ์')">UOB Live (Emsphere)</button>
-        <button type="button" onclick="setConcertDestination('mrt_blue', 'ศูนย์การประชุมแห่งชาติสิริกิติ์')">ศูนย์ฯ สิริกิติ์</button>
+  <!-- หน้าจอแอปพลิเคชันหลัก -->
+  <div id="appScreen">
+    <div class="header">
+      <div style="width: 100px;"></div>
+      <div class="header-content">
+        <h1>Concert Trip Planner</h1>
+        <p id="welcomeUserText" style="margin: 0; color: #5c85d6; font-weight: 600;"></p>
       </div>
-
-      <div class="form-group">
-        <label>เลือกระบบรถไฟฟ้า</label>
-        <select id="trainLineSelect" onchange="populateStations()">
-          <option value="bts_green">BTS สายสุขุมวิท (สายสีเขียว)</option>
-          <option value="bts_silom">BTS สายสีลม</option>
-          <option value="mrt_blue">MRT สายสีน้ำเงิน</option>
-          <option value="mrt_pink">MRT สายสีชมพู (ไปเมืองทองธานี)</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>สถานีต้นทาง</label>
-        <select id="originStationSelect"></select>
-      </div>
-
-      <div class="form-group">
-        <label>สถานีปลายทาง</label>
-        <select id="destinationStationSelect"></select>
-      </div>
-
-      <div class="form-group">
-        <label>ประเภทผู้โดยสาร</label>
-        <select id="passengerType">
-          <option value="adult">บุคคลทั่วไป</option>
-          <option value="student">นักเรียน / นักศึกษา</option>
-        </select>
-      </div>
-
-      <div class="radio-group">
-        <label><input type="radio" name="tripType" value="single" checked> เที่ยวเดียว</label>
-        <label><input type="radio" name="tripType" value="round"> ไป - กลับ</label>
-      </div>
-
-      <button type="button" onclick="calculateFare()" style="width: 100%;">คำนวณค่าโดยสาร</button>
-
-      <div class="transit-result-box" id="transitResultBox" style="display: none;">
-        <p id="stationCountText">จำนวนสถานี: 0 สถานี</p>
-        <p id="estimatedTimeText">ระยะเวลาโดยประมาณ: 0 นาที</p>
-        <p class="transit-result-price" id="fareResultText">0 บาท</p>
-        <button type="button" class="btn-apply-fare" onclick="applyFareToBudget()">เพิ่มรายการนี้ลงในงบเดินทาง</button>
+      <div>
+        <button type="button" class="btn-logout" onclick="handleLogout()">ออกจากระบบ</button>
       </div>
     </div>
 
-    <!-- ฝั่งขวา: ตารางเวลา และ บันทึกค่าใช้จ่าย -->
-    <div style="display: flex; flex-direction: column; gap: 20px;">
+    <div class="main-container">
       
-      <!-- ตารางเวลา -->
+      <!-- ฝั่งซ้าย: คำนวณค่าโดยสาร BTS / MRT -->
       <div class="card">
-        <h2>แพลนสถานที่และเวลา</h2>
+        <h2>คำนวณค่าโดยสาร BTS / MRT</h2>
         
-        <div class="row">
-          <div class="form-group" style="flex: 2;">
-            <label>วันที่</label>
-            <input type="date" id="scheduleDate">
-          </div>
-          <div class="form-group">
-            <label>วันที่ไป (Day)</label>
-            <select id="scheduleDay">
-              <option value="Day 1">Day 1</option>
-              <option value="Day 2">Day 2</option>
-              <option value="Day 3">Day 3</option>
-              <option value="Day 4">Day 4</option>
-            </select>
-          </div>
+        <label>ทางลัดสถานที่จัดคอนเสิร์ตยอดฮิต</label>
+        <div class="quick-venue-buttons">
+          <button type="button" onclick="setConcertDestination('mrt_pink', 'อิมแพ็ค เมืองทองธานี')">อิมแพ็ค เมืองทองธานี</button>
+          <button type="button" onclick="setConcertDestination('bts_green', 'บางนา')">ไบเทค บางนา</button>
+          <button type="button" onclick="setConcertDestination('bts_green', 'พร้อมพงษ์')">UOB Live (Emsphere)</button>
+          <button type="button" onclick="setConcertDestination('mrt_blue', 'ศูนย์การประชุมแห่งชาติสิริกิติ์')">ศูนย์ฯ สิริกิติ์</button>
         </div>
 
-        <div class="row">
-          <div class="form-group">
-            <label>เวลา</label>
-            <input type="time" id="scheduleTime">
-          </div>
-          <div class="form-group" style="flex: 2;">
-            <label>สถานที่ / กิจกรรม</label>
-            <input type="text" id="scheduleActivity" placeholder="เช่น แวะกินข้าว, ไปต่อคิวซื้อของ">
-          </div>
+        <div class="form-group">
+          <label>เลือกระบบรถไฟฟ้า</label>
+          <select id="trainLineSelect" onchange="populateStations()">
+            <option value="bts_green">BTS สายสุขุมวิท (สายสีเขียว)</option>
+            <option value="bts_silom">BTS สายสีลม</option>
+            <option value="mrt_blue">MRT สายสีน้ำเงิน</option>
+            <option value="mrt_pink">MRT สายสีชมพู (ไปเมืองทองธานี)</option>
+          </select>
         </div>
-        <button type="button" onclick="addSchedule()">เพิ่มลงตาราง</button>
-        <ul class="schedule-list" id="scheduleList"></ul>
+
+        <div class="form-group">
+          <label>สถานีต้นทาง</label>
+          <select id="originStationSelect"></select>
+        </div>
+
+        <div class="form-group">
+          <label>สถานีปลายทาง</label>
+          <select id="destinationStationSelect"></select>
+        </div>
+
+        <div class="form-group">
+          <label>ประเภทผู้โดยสาร</label>
+          <select id="passengerType">
+            <option value="adult">บุคคลทั่วไป</option>
+            <option value="student">นักเรียน / นักศึกษา</option>
+          </select>
+        </div>
+
+        <div class="radio-group">
+          <label><input type="radio" name="tripType" value="single" checked> เที่ยวเดียว</label>
+          <label><input type="radio" name="tripType" value="round"> ไป - กลับ</label>
+        </div>
+
+        <button type="button" onclick="calculateFare()" style="width: 100%;">คำนวณค่าโดยสาร</button>
+
+        <div class="transit-result-box" id="transitResultBox" style="display: none;">
+          <p id="stationCountText">จำนวนสถานี: 0 สถานี</p>
+          <p id="estimatedTimeText">ระยะเวลาโดยประมาณ: 0 นาที</p>
+          <p class="transit-result-price" id="fareResultText">0 บาท</p>
+          <button type="button" class="btn-apply-fare" onclick="applyFareToBudget()">เพิ่มรายการนี้ลงในงบเดินทาง</button>
+        </div>
       </div>
 
-      <!-- ส่วนบันทึกค่าใช้จ่ายแบบทีละขั้น -->
-      <div class="card">
-        <h2>บันทึกค่าใช้จ่าย</h2>
+      <!-- ฝั่งขวา: ตารางเวลา และ บันทึกค่าใช้จ่าย -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
         
-        <div class="row">
-          <div class="form-group" style="flex: 2;">
-            <label>ชื่อรายการ</label>
-            <input type="text" id="expenseName" placeholder="เช่น ข้าวมื้อเที่ยง, ชานม, แท่งไฟ">
+        <!-- ตารางเวลา -->
+        <div class="card">
+          <h2>แพลนสถานที่และเวลา</h2>
+          
+          <div class="row">
+            <div class="form-group" style="flex: 2;">
+              <label>วันที่</label>
+              <input type="date" id="scheduleDate">
+            </div>
+            <div class="form-group">
+              <label>วันที่ไป (Day)</label>
+              <select id="scheduleDay">
+                <option value="Day 1">Day 1</option>
+                <option value="Day 2">Day 2</option>
+                <option value="Day 3">Day 3</option>
+                <option value="Day 4">Day 4</option>
+              </select>
+            </div>
           </div>
-          <div class="form-group">
-            <label>หมวดหมู่</label>
-            <select id="expenseCategory">
-              <option value="food">อาหารและเครื่องดื่ม</option>
-              <option value="ticket">บัตรคอนเสิร์ต</option>
-              <option value="travel">ค่าเดินทาง</option>
-              <option value="merch">ของที่ระลึก</option>
-              <option value="other">อื่นๆ</option>
-            </select>
+
+          <div class="row">
+            <div class="form-group">
+              <label>เวลา</label>
+              <input type="time" id="scheduleTime">
+            </div>
+            <div class="form-group" style="flex: 2;">
+              <label>สถานที่ / กิจกรรม</label>
+              <input type="text" id="scheduleActivity" placeholder="เช่น แวะกินข้าว, ไปต่อคิวซื้อของ">
+            </div>
           </div>
-          <div class="form-group">
-            <label>จำนวนเงิน (บาท)</label>
-            <input type="number" id="expenseAmount" placeholder="เช่น 50" min="0">
-          </div>
+          <button type="button" onclick="addSchedule()">เพิ่มลงตาราง</button>
+          <ul class="schedule-list" id="scheduleList"></ul>
         </div>
 
-        <button type="button" onclick="addExpenseItem()" style="width: 100%; margin-bottom: 15px;">เพิ่มรายการค่าใช้จ่าย</button>
+        <!-- ส่วนบันทึกค่าใช้จ่ายแบบทีละขั้น -->
+        <div class="card">
+          <h2>บันทึกค่าใช้จ่าย</h2>
+          
+          <div class="row">
+            <div class="form-group" style="flex: 2;">
+              <label>ชื่อรายการ</label>
+              <input type="text" id="expenseName" placeholder="เช่น ข้าวมื้อเที่ยง, ชานม, แท่งไฟ">
+            </div>
+            <div class="form-group">
+              <label>หมวดหมู่</label>
+              <select id="expenseCategory">
+                <option value="food">อาหารและเครื่องดื่ม</option>
+                <option value="ticket">บัตรคอนเสิร์ต</option>
+                <option value="travel">ค่าเดินทาง</option>
+                <option value="merch">ของที่ระลึก</option>
+                <option value="other">อื่นๆ</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>จำนวนเงิน (บาท)</label>
+              <input type="number" id="expenseAmount" placeholder="เช่น 50" min="0">
+            </div>
+          </div>
 
-        <!-- ตารางประวัติรายการที่เพิ่มทีละขั้น -->
-        <label>รายการที่บันทึกไว้</label>
-        <div class="table-scroll-container">
-          <table>
+          <button type="button" onclick="addExpenseItem()" style="width: 100%; margin-bottom: 15px;">เพิ่มรายการค่าใช้จ่าย</button>
+
+          <!-- ตารางประวัติรายการที่เพิ่มทีละขั้น -->
+          <label>รายการที่บันทึกไว้</label>
+          <div class="table-scroll-container">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 35px;">ลำดับ</th>
+                  <th>รายการ</th>
+                  <th>หมวดหมู่</th>
+                  <th style="text-align: right;">จำนวนเงิน</th>
+                  <th style="width: 55px; text-align: center;">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="expenseTableBody">
+                <tr>
+                  <td colspan="5" style="text-align: center; color: #999;">ยังไม่มีรายการค่าใช้จ่าย</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ยอดรวมทั้งหมด -->
+          <div class="budget-result" id="totalBudget">
+            ยอดรวมทั้งหมด: 0 บาท
+          </div>
+
+          <!-- ตารางสรุปรวมตามหมวดหมู่ -->
+          <label>สรุปยอดรวมแยกตามหมวดหมู่</label>
+          <table style="margin-top: 5px;">
             <thead>
               <tr>
-                <th style="width: 35px;">ลำดับ</th>
-                <th>รายการ</th>
                 <th>หมวดหมู่</th>
-                <th style="text-align: right;">จำนวนเงิน</th>
-                <th style="width: 55px; text-align: center;">จัดการ</th>
+                <th style="text-align: right;">รวมเป็นเงิน (บาท)</th>
               </tr>
             </thead>
-            <tbody id="expenseTableBody">
-              <tr>
-                <td colspan="5" style="text-align: center; color: #999;">ยังไม่มีรายการค่าใช้จ่าย</td>
-              </tr>
+            <tbody>
+              <tr><td>อาหารและเครื่องดื่ม</td><td id="sumFood" style="text-align: right;">0</td></tr>
+              <tr><td>บัตรคอนเสิร์ต</td><td id="sumTicket" style="text-align: right;">0</td></tr>
+              <tr><td>ค่าเดินทาง</td><td id="sumTravel" style="text-align: right;">0</td></tr>
+              <tr><td>ของที่ระลึก</td><td id="sumMerch" style="text-align: right;">0</td></tr>
+              <tr><td>อื่นๆ</td><td id="sumOther" style="text-align: right;">0</td></tr>
             </tbody>
           </table>
+
+          <!-- กราฟวงกลม -->
+          <div class="chart-container">
+            <canvas id="budgetChart"></canvas>
+          </div>
+          <div id="highestCostText" class="highest-cost"></div>
+
         </div>
-
-        <!-- ยอดรวมทั้งหมด -->
-        <div class="budget-result" id="totalBudget">
-          ยอดรวมทั้งหมด: 0 บาท
-        </div>
-
-        <!-- ตารางสรุปรวมตามหมวดหมู่ -->
-        <label>สรุปยอดรวมแยกตามหมวดหมู่</label>
-        <table style="margin-top: 5px;">
-          <thead>
-            <tr>
-              <th>หมวดหมู่</th>
-              <th style="text-align: right;">รวมเป็นเงิน (บาท)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>อาหารและเครื่องดื่ม</td><td id="sumFood" style="text-align: right;">0</td></tr>
-            <tr><td>บัตรคอนเสิร์ต</td><td id="sumTicket" style="text-align: right;">0</td></tr>
-            <tr><td>ค่าเดินทาง</td><td id="sumTravel" style="text-align: right;">0</td></tr>
-            <tr><td>ของที่ระลึก</td><td id="sumMerch" style="text-align: right;">0</td></tr>
-            <tr><td>อื่นๆ</td><td id="sumOther" style="text-align: right;">0</td></tr>
-          </tbody>
-        </table>
-
-        <!-- กราฟวงกลม -->
-        <div class="chart-container">
-          <canvas id="budgetChart"></canvas>
-        </div>
-        <div id="highestCostText" class="highest-cost"></div>
-
       </div>
     </div>
   </div>
 
   <script>
-    // ฐานข้อมูลสถานีรถไฟฟ้า
     const trainData = {
       bts_green: [
         "คูคต", "แยก คปอ.", "พิพิธภัณฑ์กองทัพอากาศ", "โรงพยาบาลภูมิพลอดุลยเดช", "สะพานใหม่", 
@@ -453,9 +502,11 @@
       ]
     };
 
+    let currentUser = "";
     let latestCalculatedFare = 0;
     let budgetChartInstance = null;
     let expenseList = [];
+    let scheduleListArray = [];
 
     const categoryNames = {
       food: "อาหารและเครื่องดื่ม",
@@ -464,6 +515,62 @@
       merch: "ของที่ระลึก",
       other: "อื่นๆ"
     };
+
+    // ตรวจสอบการเข้าสู่ระบบค้างไว้
+    window.onload = function() {
+      const savedUser = localStorage.getItem("concert_logged_user");
+      if (savedUser) {
+        currentUser = savedUser;
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("appScreen").style.display = "block";
+        document.getElementById("welcomeUserText").textContent = "ผู้ใช้งาน: " + currentUser;
+        loadUserData();
+      }
+      populateStations();
+      initChart();
+    };
+
+    function handleLogin() {
+      const name = document.getElementById("usernameInput").value.trim();
+      if (!name) {
+        alert("กรุณากรอกชื่อของคุณ");
+        return;
+      }
+      currentUser = name;
+      localStorage.setItem("concert_logged_user", currentUser);
+
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("appScreen").style.display = "block";
+      document.getElementById("welcomeUserText").textContent = "ผู้ใช้งาน: " + currentUser;
+      loadUserData();
+    }
+
+    function handleLogout() {
+      localStorage.removeItem("concert_logged_user");
+      currentUser = "";
+      document.getElementById("appScreen").style.display = "none";
+      document.getElementById("loginScreen").style.display = "block";
+      document.getElementById("usernameInput").value = "";
+    }
+
+    // โหลดข้อมูลของผู้ใช้นี้จาก localStorage
+    function loadUserData() {
+      const savedExpenses = localStorage.getItem("concert_expenses_" + currentUser);
+      const savedSchedules = localStorage.getItem("concert_schedules_" + currentUser);
+
+      expenseList = savedExpenses ? JSON.parse(savedExpenses) : [];
+      scheduleListArray = savedSchedules ? JSON.parse(savedSchedules) : [];
+
+      renderExpenses();
+      renderSchedules();
+    }
+
+    // บันทึกข้อมูลของผู้ใช้นี้ลง localStorage
+    function saveUserData() {
+      if (!currentUser) return;
+      localStorage.setItem("concert_expenses_" + currentUser, JSON.stringify(expenseList));
+      localStorage.setItem("concert_schedules_" + currentUser, JSON.stringify(scheduleListArray));
+    }
 
     function populateStations() {
       const lineKey = document.getElementById("trainLineSelect").value;
@@ -571,6 +678,7 @@
         amount: latestCalculatedFare
       });
 
+      saveUserData();
       renderExpenses();
       alert("เพิ่มรายการ '" + itemName + "' จำนวน " + latestCalculatedFare + " บาท เรียบร้อยแล้ว");
     }
@@ -603,11 +711,13 @@
       nameInput.value = "";
       amountInput.value = "";
 
+      saveUserData();
       renderExpenses();
     }
 
     function deleteExpenseItem(id) {
       expenseList = expenseList.filter(item => item.id !== id);
+      saveUserData();
       renderExpenses();
     }
 
@@ -704,7 +814,6 @@
       }
     }
 
-    // ฟังก์ชันเพิ่มตารางเวลา (อัปเดตให้มีวันที่และ Day)
     function addSchedule() {
       const date = document.getElementById("scheduleDate").value;
       const day = document.getElementById("scheduleDay").value;
@@ -716,41 +825,80 @@
         return;
       }
 
-      const list = document.getElementById("scheduleList");
-      const li = document.createElement("li");
+      scheduleListArray.push({
+        id: Date.now(),
+        date: date,
+        day: day,
+        time: time,
+        activity: activity
+      });
 
-      // สร้างส่วนหัวของลิสต์ (วันที่ และ เวลา)
-      const headerDiv = document.createElement("div");
-      headerDiv.className = "schedule-header";
+      saveUserData();
+      renderSchedules();
 
-      const dateSpan = document.createElement("span");
-      dateSpan.style.fontWeight = "bold";
-      dateSpan.style.color = "#d84b6b";
-      
-      // จัดรูปแบบวันที่ให้ดูง่ายขึ้น
-      const dateObj = new Date(date);
-      const formattedDate = dateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-      dateSpan.textContent = day + " (" + formattedDate + ")";
-
-      const timeSpan = document.createElement("span");
-      timeSpan.style.fontWeight = "bold";
-      timeSpan.style.color = "#5c85d6";
-      timeSpan.textContent = time + " น.";
-
-      headerDiv.appendChild(dateSpan);
-      headerDiv.appendChild(timeSpan);
-
-      // สร้างส่วนล่างของลิสต์ (กิจกรรม)
-      const activityDiv = document.createElement("div");
-      activityDiv.textContent = activity;
-
-      li.appendChild(headerDiv);
-      li.appendChild(activityDiv);
-      list.appendChild(li);
-
-      // เคลียร์เฉพาะช่องเวลาและกิจกรรม เพื่อให้กรอกเวลาถัดไปในวันเดียวกันได้ง่ายขึ้น
       document.getElementById("scheduleTime").value = "";
       document.getElementById("scheduleActivity").value = "";
+    }
+
+    function deleteScheduleItem(id) {
+      scheduleListArray = scheduleListArray.filter(item => item.id !== id);
+      saveUserData();
+      renderSchedules();
+    }
+
+    function renderSchedules() {
+      const list = document.getElementById("scheduleList");
+      list.innerHTML = "";
+
+      if (scheduleListArray.length === 0) {
+        return;
+      }
+
+      scheduleListArray.forEach(item => {
+        const li = document.createElement("li");
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "schedule-header";
+
+        const dateSpan = document.createElement("span");
+        dateSpan.style.fontWeight = "bold";
+        dateSpan.style.color = "#d84b6b";
+        
+        const dateObj = new Date(item.date);
+        const formattedDate = dateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+        dateSpan.textContent = item.day + " (" + formattedDate + ")";
+
+        const timeSpan = document.createElement("span");
+        timeSpan.style.fontWeight = "bold";
+        timeSpan.style.color = "#5c85d6";
+        timeSpan.textContent = item.time + " น.";
+
+        headerDiv.appendChild(dateSpan);
+        headerDiv.appendChild(timeSpan);
+
+        const bottomDiv = document.createElement("div");
+        bottomDiv.style.display = "flex";
+        bottomDiv.style.justify0content = "space-between";
+        bottomDiv.style.alignItems = "center";
+
+        const activitySpan = document.createElement("span");
+        activitySpan.textContent = item.activity;
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "btn-delete";
+        delBtn.textContent = "ลบ";
+        delBtn.onclick = function() {
+          deleteScheduleItem(item.id);
+        };
+
+        bottomDiv.appendChild(activitySpan);
+        bottomDiv.appendChild(delBtn);
+
+        li.appendChild(headerDiv);
+        li.appendChild(bottomDiv);
+        list.appendChild(li);
+      });
     }
 
     function initChart() {
@@ -782,11 +930,6 @@
         }
       });
     }
-
-    window.onload = function() {
-      populateStations();
-      initChart();
-    };
   </script>
 
 </body>
