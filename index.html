@@ -15,7 +15,6 @@
       background-color: #fce4ec;
       color: #333;
     }
-    /* หน้าล็อกอิน */
     #loginScreen {
       max-width: 400px;
       margin: 100px auto;
@@ -68,6 +67,7 @@
       border-radius: 15px;
       border: 2px solid #b3e5fc;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
     }
     .form-group {
       margin-bottom: 12px;
@@ -193,6 +193,36 @@
       padding-bottom: 5px;
       margin-bottom: 5px;
     }
+    /* สไตล์สำหรับเช็คลิสต์ */
+    .checklist-container {
+      list-style-type: none;
+      padding: 0;
+      margin: 10px 0 0 0;
+    }
+    .checklist-item {
+      background: #e1f5fe;
+      margin-bottom: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 15px;
+    }
+    .checklist-item.checked span {
+      text-decoration: line-through;
+      color: #888;
+    }
+    .checklist-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .checklist-left input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
     .budget-result {
       background: #ffecf0;
       padding: 12px;
@@ -265,7 +295,7 @@
 </head>
 <body>
 
-  <!-- หน้าล็อกอิน (ใส่ชื่อ) -->
+  <!-- หน้าล็อกอิน -->
   <div id="loginScreen">
     <h2>Concert Trip Planner</h2>
     <p style="color: #666; margin-bottom: 20px;">กรอกชื่อของคุณเพื่อเริ่มวางแผนคอนเสิร์ต</p>
@@ -291,58 +321,74 @@
 
     <div class="main-container">
       
-      <!-- ฝั่งซ้าย: คำนวณค่าโดยสาร BTS / MRT -->
-      <div class="card">
-        <h2>คำนวณค่าโดยสาร BTS / MRT</h2>
-        
-        <label>ทางลัดสถานที่จัดคอนเสิร์ตยอดฮิต</label>
-        <div class="quick-venue-buttons">
-          <button type="button" onclick="setConcertDestination('mrt_pink', 'อิมแพ็ค เมืองทองธานี')">อิมแพ็ค เมืองทองธานี</button>
-          <button type="button" onclick="setConcertDestination('bts_green', 'บางนา')">ไบเทค บางนา</button>
-          <button type="button" onclick="setConcertDestination('bts_green', 'พร้อมพงษ์')">UOB Live (Emsphere)</button>
-          <button type="button" onclick="setConcertDestination('mrt_blue', 'ศูนย์การประชุมแห่งชาติสิริกิติ์')">ศูนย์ฯ สิริกิติ์</button>
+      <!-- ฝั่งซ้าย: คำนวณค่าโดยสาร และ เช็คลิสต์สิ่งของ -->
+      <div>
+        <div class="card">
+          <h2>คำนวณค่าโดยสาร BTS / MRT</h2>
+          
+          <label>ทางลัดสถานที่จัดคอนเสิร์ตยอดฮิต</label>
+          <div class="quick-venue-buttons">
+            <button type="button" onclick="setConcertDestination('mrt_pink', 'อิมแพ็ค เมืองทองธานี')">อิมแพ็ค เมืองทองธานี</button>
+            <button type="button" onclick="setConcertDestination('bts_green', 'บางนา')">ไบเทค บางนา</button>
+            <button type="button" onclick="setConcertDestination('bts_green', 'พร้อมพงษ์')">UOB Live (Emsphere)</button>
+            <button type="button" onclick="setConcertDestination('mrt_blue', 'ศูนย์การประชุมแห่งชาติสิริกิติ์')">ศูนย์ฯ สิริกิติ์</button>
+          </div>
+
+          <div class="form-group">
+            <label>เลือกระบบรถไฟฟ้า</label>
+            <select id="trainLineSelect" onchange="populateStations()">
+              <option value="bts_green">BTS สายสุขุมวิท (สายสีเขียว)</option>
+              <option value="bts_silom">BTS สายสีลม</option>
+              <option value="mrt_blue">MRT สายสีน้ำเงิน</option>
+              <option value="mrt_pink">MRT สายสีชมพู (ไปเมืองทองธานี)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>สถานีต้นทาง</label>
+            <select id="originStationSelect"></select>
+          </div>
+
+          <div class="form-group">
+            <label>สถานีปลายทาง</label>
+            <select id="destinationStationSelect"></select>
+          </div>
+
+          <div class="form-group">
+            <label>ประเภทผู้โดยสาร</label>
+            <select id="passengerType">
+              <option value="adult">บุคคลทั่วไป</option>
+              <option value="student">นักเรียน / นักศึกษา</option>
+            </select>
+          </div>
+
+          <div class="radio-group">
+            <label><input type="radio" name="tripType" value="single" checked> เที่ยวเดียว</label>
+            <label><input type="radio" name="tripType" value="round"> ไป - กลับ</label>
+          </div>
+
+          <button type="button" onclick="calculateFare()" style="width: 100%;">คำนวณค่าโดยสาร</button>
+
+          <div class="transit-result-box" id="transitResultBox" style="display: none;">
+            <p id="stationCountText">จำนวนสถานี: 0 สถานี</p>
+            <p id="estimatedTimeText">ระยะเวลาโดยประมาณ: 0 นาที</p>
+            <p class="transit-result-price" id="fareResultText">0 บาท</p>
+            <button type="button" class="btn-apply-fare" onclick="applyFareToBudget()">เพิ่มรายการนี้ลงในงบเดินทาง</button>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label>เลือกระบบรถไฟฟ้า</label>
-          <select id="trainLineSelect" onchange="populateStations()">
-            <option value="bts_green">BTS สายสุขุมวิท (สายสีเขียว)</option>
-            <option value="bts_silom">BTS สายสีลม</option>
-            <option value="mrt_blue">MRT สายสีน้ำเงิน</option>
-            <option value="mrt_pink">MRT สายสีชมพู (ไปเมืองทองธานี)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>สถานีต้นทาง</label>
-          <select id="originStationSelect"></select>
-        </div>
-
-        <div class="form-group">
-          <label>สถานีปลายทาง</label>
-          <select id="destinationStationSelect"></select>
-        </div>
-
-        <div class="form-group">
-          <label>ประเภทผู้โดยสาร</label>
-          <select id="passengerType">
-            <option value="adult">บุคคลทั่วไป</option>
-            <option value="student">นักเรียน / นักศึกษา</option>
-          </select>
-        </div>
-
-        <div class="radio-group">
-          <label><input type="radio" name="tripType" value="single" checked> เที่ยวเดียว</label>
-          <label><input type="radio" name="tripType" value="round"> ไป - กลับ</label>
-        </div>
-
-        <button type="button" onclick="calculateFare()" style="width: 100%;">คำนวณค่าโดยสาร</button>
-
-        <div class="transit-result-box" id="transitResultBox" style="display: none;">
-          <p id="stationCountText">จำนวนสถานี: 0 สถานี</p>
-          <p id="estimatedTimeText">ระยะเวลาโดยประมาณ: 0 นาที</p>
-          <p class="transit-result-price" id="fareResultText">0 บาท</p>
-          <button type="button" class="btn-apply-fare" onclick="applyFareToBudget()">เพิ่มรายการนี้ลงในงบเดินทาง</button>
+        <!-- เพิ่มเช็คลิสต์สิ่งของที่ต้องพก -->
+        <div class="card">
+          <h2>เช็คลิสต์สิ่งของที่ต้องพก</h2>
+          <div class="row">
+            <div class="form-group" style="flex: 2;">
+              <input type="text" id="checklistItemInput" placeholder="เช่น บัตรคอนเสิร์ต, พาวเวอร์แบงค์, แท่งไฟ">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <button type="button" onclick="addChecklistItem()" style="width: 100%;">เพิ่มสิ่งของ</button>
+            </div>
+          </div>
+          <ul class="checklist-container" id="checklistContainer"></ul>
         </div>
       </div>
 
@@ -507,6 +553,7 @@
     let budgetChartInstance = null;
     let expenseList = [];
     let scheduleListArray = [];
+    let checklistArray = [];
 
     const categoryNames = {
       food: "อาหารและเครื่องดื่ม",
@@ -516,7 +563,6 @@
       other: "อื่นๆ"
     };
 
-    // ตรวจสอบการเข้าสู่ระบบค้างไว้
     window.onload = function() {
       const savedUser = localStorage.getItem("concert_logged_user");
       if (savedUser) {
@@ -553,23 +599,115 @@
       document.getElementById("usernameInput").value = "";
     }
 
-    // โหลดข้อมูลของผู้ใช้นี้จาก localStorage
     function loadUserData() {
       const savedExpenses = localStorage.getItem("concert_expenses_" + currentUser);
       const savedSchedules = localStorage.getItem("concert_schedules_" + currentUser);
+      const savedChecklist = localStorage.getItem("concert_checklist_" + currentUser);
 
       expenseList = savedExpenses ? JSON.parse(savedExpenses) : [];
       scheduleListArray = savedSchedules ? JSON.parse(savedSchedules) : [];
+      
+      if (savedChecklist) {
+        checklistArray = JSON.parse(savedChecklist);
+      } else {
+        // รายการเริ่มต้นสำหรับผู้ใช้งานใหม่
+        checklistArray = [
+          { id: 1, text: "บัตรคอนเสิร์ตตัวจริง / E-Ticket", checked: false },
+          { id: 2, text: "บัตรประชาชน / บัตรตัวจริง", checked: false },
+          { id: 3, text: "พาวเวอร์แบงค์และสายชาร์จ", checked: false },
+          { id: 4, text: "แท่งไฟและถ่านสำรอง", checked: false }
+        ];
+      }
 
       renderExpenses();
       renderSchedules();
+      renderChecklist();
     }
 
-    // บันทึกข้อมูลของผู้ใช้นี้ลง localStorage
     function saveUserData() {
       if (!currentUser) return;
       localStorage.setItem("concert_expenses_" + currentUser, JSON.stringify(expenseList));
       localStorage.setItem("concert_schedules_" + currentUser, JSON.stringify(scheduleListArray));
+      localStorage.setItem("concert_checklist_" + currentUser, JSON.stringify(checklistArray));
+    }
+
+    // ฟังก์ชันจัดการเช็คลิสต์
+    function addChecklistItem() {
+      const input = document.getElementById("checklistItemInput");
+      const text = input.value.trim();
+
+      if (!text) {
+        alert("กรุณาระบุชื่อสิ่งของที่ต้องการเพิ่ม");
+        return;
+      }
+
+      checklistArray.push({
+        id: Date.now(),
+        text: text,
+        checked: false
+      });
+
+      input.value = "";
+      saveUserData();
+      renderChecklist();
+    }
+
+    function toggleChecklistItem(id) {
+      const item = checklistArray.find(i => i.id === id);
+      if (item) {
+        item.checked = !item.checked;
+        saveUserData();
+        renderChecklist();
+      }
+    }
+
+    function deleteChecklistItem(id) {
+      checklistArray = checklistArray.filter(i => i.id !== id);
+      saveUserData();
+      renderChecklist();
+    }
+
+    function renderChecklist() {
+      const container = document.getElementById("checklistContainer");
+      container.innerHTML = "";
+
+      if (checklistArray.length === 0) {
+        container.innerHTML = '<li style="text-align: center; color: #999; background: #fff; padding: 10px;">ยังไม่มีรายการสิ่งของในเช็คลิสต์</li>';
+        return;
+      }
+
+      checklistArray.forEach(item => {
+        const li = document.createElement("li");
+        li.className = "checklist-item" + (item.checked ? " checked" : "");
+
+        const leftDiv = document.createElement("div");
+        leftDiv.className = "checklist-left";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = item.checked;
+        checkbox.onchange = function() {
+          toggleChecklistItem(item.id);
+        };
+
+        const span = document.createElement("span");
+        span.textContent = item.text;
+
+        leftDiv.appendChild(checkbox);
+        leftDiv.appendChild(span);
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "btn-delete";
+        delBtn.textContent = "ลบ";
+        delBtn.onclick = function() {
+          deleteChecklistItem(item.id);
+        };
+
+        li.appendChild(leftDiv);
+        li.appendChild(delBtn);
+        container.appendChild(li);
+      });
     }
 
     function populateStations() {
@@ -878,7 +1016,7 @@
 
         const bottomDiv = document.createElement("div");
         bottomDiv.style.display = "flex";
-        bottomDiv.style.justify0content = "space-between";
+        bottomDiv.style.justifyContent = "space-between";
         bottomDiv.style.alignItems = "center";
 
         const activitySpan = document.createElement("span");
